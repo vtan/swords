@@ -6,7 +6,7 @@ import javax.swing.JFrame
 object Main {
 
   def main(args: Array[String]): Unit = {
-    var gs = GameState(V2(0, 0))
+    var gs = GameState.initial
     val screenSize = V2(1280, 720)
     val renderer = new Renderer(screenSize, gs)
 
@@ -19,7 +19,11 @@ object Main {
     frame.addKeyListener {
       new KeyAdapter {
         override def keyPressed(keyEvent: KeyEvent): Unit = {
-          gs = Updater.update(keyEvent, gs)
+          gs = if (gs.gameOver) {
+            GameState.initial
+          } else {
+            Updater.update(keyEvent, gs)
+          }
           renderer.gs = gs
           frame.repaint()
         }
