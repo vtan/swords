@@ -2,8 +2,10 @@ package swords
 
 sealed trait GameEvent
 
-final case class DamageDealt(
+final case class CreatureAttacked(
   attackerName: String,
   defenderName: String,
-  damage: Double
+  damage: Option[Double]
 ) extends GameEvent
+
+final case class CreatureDied(name: String) extends GameEvent

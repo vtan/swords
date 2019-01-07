@@ -21,11 +21,15 @@ final class Renderer(
     renderCreature(graphics, playerColor, gs.player)
     gs.enemies.foreach(renderCreature(graphics, enemyColor, _))
 
-    (Stream.from(0) zip gs.events.takeRight(5)).foreach {
+    (Stream.from(0) zip gs.events.takeRight(10).reverse).foreach {
       case (i, event) =>
         val message = event match {
-          case DamageDealt(attackerName, defenderName, damage) =>
+          case CreatureAttacked(attackerName, defenderName, Some(damage)) =>
             f"$attackerName dealt $damage%.2f damage to $defenderName"
+          case CreatureAttacked(attackerName, defenderName, None) =>
+            s"$attackerName attacked $defenderName but missed"
+          case CreatureDied(name) =>
+            s"$name died"
         }
         graphics.setColor(Color.white)
         graphics.drawString(message, 0, screenSize.y - i * 16)

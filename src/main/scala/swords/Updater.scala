@@ -32,9 +32,12 @@ object Updater {
     val playerDamage = resolveDamage(gs.player, enemy)
     val damagedEnemy = enemy.modify(_.hitPoints).using(_ - playerDamage.getOrElse(0.0))
 
-    val newEvents =
-      enemyDamage.map(DamageDealt("enemy", "player", _)).toVector ++
-      playerDamage.map(DamageDealt("player", "enemy", _)).toVector
+    val newEvents = Vector(
+      CreatureAttacked("enemy", "player", enemyDamage),
+      CreatureAttacked("player", "enemy", playerDamage)
+    ) ++
+      (if (damagedEnemy.hitPoints < 0) Vector(CreatureDied("enemy")) else Vector.empty) ++
+      (if (damagedPlayer.hitPoints < 0) Vector(CreatureDied("player")) else Vector.empty)
 
     gs.copy(
       player = damagedPlayer,
