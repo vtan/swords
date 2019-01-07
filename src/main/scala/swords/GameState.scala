@@ -3,6 +3,7 @@ package swords
 final case class GameState(
   player: Creature,
   enemies: Vector[Creature],
+  events: Vector[GameEvent],
   gameOver: Boolean
 )
 
@@ -28,6 +29,7 @@ object GameState {
         defense = 0
       )
     ),
+    events = Vector.empty,
     gameOver = false
   )
 }

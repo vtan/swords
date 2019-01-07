@@ -1,5 +1,6 @@
 package swords
 
+import java.awt.Dimension
 import java.awt.event.{KeyAdapter, KeyEvent}
 import javax.swing.JFrame
 
@@ -12,7 +13,7 @@ object Main {
 
     val frame = new JFrame()
     frame.add(renderer)
-    frame.setSize(screenSize.x, screenSize.y)
+    frame.getContentPane.setPreferredSize(new Dimension(screenSize.x, screenSize.y))
     frame.setResizable(false)
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
 
@@ -30,6 +31,7 @@ object Main {
       }
     }
 
+    frame.pack()
     frame.setVisible(true)
   }
 

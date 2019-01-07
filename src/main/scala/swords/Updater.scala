@@ -26,14 +26,16 @@ object Updater {
   }
 
   private def attack(enemy: Creature, gs: GameState): GameState = {
-    val damagedPlayer = {
-      val damage = resolveDamage(enemy, gs.player).getOrElse(0.0)
-      gs.player.modify(_.hitPoints).using(_ - damage)
-    }
-    val damagedEnemy = {
-      val damage = resolveDamage(gs.player, enemy).getOrElse(0.0)
-      enemy.modify(_.hitPoints).using(_ - damage)
-    }
+    val enemyDamage = resolveDamage(enemy, gs.player)
+    val damagedPlayer = gs.player.modify(_.hitPoints).using(_ - enemyDamage.getOrElse(0.0))
+
+    val playerDamage = resolveDamage(gs.player, enemy)
+    val damagedEnemy = enemy.modify(_.hitPoints).using(_ - playerDamage.getOrElse(0.0))
+
+    val newEvents =
+      enemyDamage.map(DamageDealt("enemy", "player", _)).toVector ++
+      playerDamage.map(DamageDealt("player", "enemy", _)).toVector
+
     gs.copy(
       player = damagedPlayer,
       enemies =
@@ -42,6 +44,7 @@ object Updater {
         } else {
           gs.enemies.filterNot(_ == enemy)
         },
+      events = gs.events ++ newEvents,
       gameOver = damagedPlayer.hitPoints <= 0
     )
   }

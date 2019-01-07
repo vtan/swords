@@ -14,16 +14,22 @@ final class Renderer(
     graphics.setColor(new Color(0, 0, 0))
     graphics.fillRect(0, 0, screenSize.x, screenSize.y)
 
-    Renderer.render(graphics.asInstanceOf[Graphics2D], gs)
+    render(graphics.asInstanceOf[Graphics2D], gs)
   }
 
-}
-
-object Renderer {
-
-  def render(graphics: Graphics2D, gs: GameState): Unit = {
+  private def render(graphics: Graphics2D, gs: GameState): Unit = {
     renderCreature(graphics, playerColor, gs.player)
     gs.enemies.foreach(renderCreature(graphics, enemyColor, _))
+
+    (Stream.from(0) zip gs.events.takeRight(5)).foreach {
+      case (i, event) =>
+        val message = event match {
+          case DamageDealt(attackerName, defenderName, damage) =>
+            f"$attackerName dealt $damage%.2f damage to $defenderName"
+        }
+        graphics.setColor(Color.white)
+        graphics.drawString(message, 0, screenSize.y - i * 16)
+    }
 
     if (gs.gameOver) {
       graphics.setColor(Color.white)
