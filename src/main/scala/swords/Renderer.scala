@@ -25,7 +25,7 @@ final class Renderer(
       case (i, event) =>
         val message = event match {
           case CreatureAttacked(attackerName, defenderName, Some(damage)) =>
-            f"$attackerName dealt $damage%.2f damage to $defenderName"
+            s"$attackerName dealt $damage damage to $defenderName"
           case CreatureAttacked(attackerName, defenderName, None) =>
             s"$attackerName attacked $defenderName but missed"
           case CreatureDied(name) =>
@@ -46,7 +46,7 @@ final class Renderer(
     graphics.setColor(color)
     graphics.fillRect(posPx.x, posPx.y, tileSize.x, tileSize.y)
     graphics.setColor(Color.white)
-    graphics.drawString(f"HP: ${creature.hitPoints}%.2f", posPx.x, posPx.y)
+    graphics.drawString(s"HP: ${creature.hitPoints}", posPx.x, posPx.y)
   }
 
   private val tileSize: V2[Int] = V2(32, 32)
