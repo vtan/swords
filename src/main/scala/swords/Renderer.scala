@@ -36,7 +36,7 @@ object Renderer {
     graphics.setColor(color)
     graphics.fillRect(posPx.x, posPx.y, tileSize.x, tileSize.y)
     graphics.setColor(Color.white)
-    graphics.drawString("HP: " + creature.hitPoints, posPx.x, posPx.y)
+    graphics.drawString(f"HP: ${creature.hitPoints}%.2f", posPx.x, posPx.y)
   }
 
   private val tileSize: V2[Int] = V2(32, 32)

@@ -2,5 +2,7 @@ package swords
 
 final case class Creature(
   position: V2[Int],
-  hitPoints: Int
+  hitPoints: Double,
+  attack: Double,
+  defense: Double
 )
