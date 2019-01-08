@@ -8,6 +8,8 @@ final class Renderer(
   var gs: GameState
 ) extends JPanel {
 
+  setFont(getFont.deriveFont(16.0f))
+
   override def paintComponent(graphics: Graphics): Unit = {
     super.paintComponent(graphics)
 
@@ -45,13 +47,13 @@ final class Renderer(
 
   private def renderCreature(graphics: Graphics2D, color: Color, creature: Creature): Unit = {
     val posPx = creature.position * tileSize
-    graphics.setColor(color)
+    graphics.setColor(if (creature.hasAdvantage) color.brighter else color)
     graphics.fillRect(posPx.x, posPx.y, tileSize.x, tileSize.y)
     graphics.setColor(Color.white)
-    graphics.drawString(s"HP: ${creature.hitPoints}", posPx.x, posPx.y)
+    graphics.drawString(s"HP: ${creature.hitPoints}", posPx.x, posPx.y + tileSize.y)
   }
 
-  private val tileSize: V2[Int] = V2(32, 32)
+  private val tileSize: V2[Int] = V2(48, 48)
   private val playerColor = new Color(0, 127, 255)
   private val enemyColor = new Color(255, 127, 0)
 }

@@ -56,7 +56,7 @@ object Updater {
 
   private def attack(attacker: Creature, defender: Creature): (Creature, Creature, Vector[GameEvent]) = {
     val attackResult = resolveAttack(attacker, defender)
-    val newAttacker = attacker.modify(_.hasAdvantage).using(_ || attackResult.advantage)
+    val newAttacker = attacker.copy(hasAdvantage = attackResult.advantage)
     val newDefender = defender.modify(_.hitPoints).using(_ - attackResult.damage.getOrElse(0))
     val events = Vector.concat(
       Vector(CreatureAttacked(attacker.name, defender.name, attackResult.damage)),
