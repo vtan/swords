@@ -9,3 +9,5 @@ final case class CreatureAttacked(
 ) extends GameEvent
 
 final case class CreatureDied(name: String) extends GameEvent
+
+final case class CreatureGainedAdvantage(name: String) extends GameEvent

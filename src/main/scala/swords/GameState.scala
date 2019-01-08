@@ -7,6 +7,12 @@ final case class GameState(
 ) {
   lazy val gameOver: Boolean = player.hitPoints <= 0
 
+  def replaceEnemy(enemy: Creature, newEnemy: Option[Creature]): GameState =
+    newEnemy match {
+      case Some(ne) => copy(enemies = enemies.map(e => if (e == enemy) ne else e))
+      case None => copy(enemies = enemies.filterNot(_ == enemy))
+    }
+
   def appendEvents(newEvents: Vector[GameEvent]): GameState =
     copy(events = events ++ newEvents)
 }
@@ -19,6 +25,7 @@ object GameState {
       hitPoints = 12,
       attack = 2,
       defense = 2,
+      hasAdvantage = false
     ),
     enemies = Vector(
       Creature(
@@ -26,14 +33,16 @@ object GameState {
         position = V2(3, 3),
         hitPoints = 7,
         attack = 1,
-        defense = 1
+        defense = 1,
+        hasAdvantage = false
       ),
       Creature(
         name = "Enemy 2",
         position = V2(12, 2),
         hitPoints = 7,
         attack = 1,
-        defense = 1
+        defense = 1,
+        hasAdvantage = false
       )
     ),
     events = Vector.empty

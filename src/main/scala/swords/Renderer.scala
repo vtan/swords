@@ -30,6 +30,8 @@ final class Renderer(
             s"$attackerName attacked $defenderName but missed"
           case CreatureDied(name) =>
             s"$name died"
+          case CreatureGainedAdvantage(name) =>
+            s"$name gained an advantage"
         }
         graphics.setColor(Color.white)
         graphics.drawString(message, 0, screenSize.y - i * 16)

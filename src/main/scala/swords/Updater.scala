@@ -16,7 +16,11 @@ object Updater {
         val attackedEnemy = gs.enemies.find(_.position == target)
         val gsAfterPlayerAction = attackedEnemy match {
           case Some(enemy) =>
-            attackEnemy(enemy, gs)
+            val (newPlayer, newEnemy, events) = attack(gs.player, enemy)
+            gs
+              .copy(player = newPlayer)
+              .replaceEnemy(enemy, Some(newEnemy).filter(_.hitPoints > 0))
+              .appendEvents(events)
           case None =>
             gs.modify(_.player.position).setTo(target)
         }
@@ -33,9 +37,10 @@ object Updater {
     val toPlayer = gs.player.position - enemy.position
     val nextToPlayer = toPlayer.map(_.abs).max == 1
     if (nextToPlayer) {
-      val (damagedPlayer, events) = attack(enemy, gs.player)
+      val (newEnemy, newPlayer, events) = attack(enemy, gs.player)
       gs
-        .copy(player = damagedPlayer)
+        .copy(player = newPlayer)
+        .replaceEnemy(enemy, Some(newEnemy).filter(_.hitPoints > 0))
         .appendEvents(events)
     } else {
       val direction = toPlayer.map(_.signum)
@@ -49,31 +54,30 @@ object Updater {
     }
   }
 
-  private def attackEnemy(enemy: Creature, gs: GameState): GameState = {
-    val (damagedEnemy, events) = attack(gs.player, enemy)
-    gs
-      .modify(_.enemies).using { enemies =>
-        if (damagedEnemy.hitPoints > 0) {
-          enemies.map(e => if (e == enemy) damagedEnemy else e)
-        } else {
-          enemies.filterNot(_ == enemy)
-        }
-      }
-      .appendEvents(events)
+  private def attack(attacker: Creature, defender: Creature): (Creature, Creature, Vector[GameEvent]) = {
+    val attackResult = resolveAttack(attacker, defender)
+    val newAttacker = attacker.modify(_.hasAdvantage).using(_ || attackResult.advantage)
+    val newDefender = defender.modify(_.hitPoints).using(_ - attackResult.damage.getOrElse(0))
+    val events = Vector.concat(
+      Vector(CreatureAttacked(attacker.name, defender.name, attackResult.damage)),
+      if (newDefender.hitPoints <= 0) Vector(CreatureDied(defender.name)) else Vector.empty,
+      if (attackResult.advantage) Vector(CreatureGainedAdvantage(attacker.name)) else Vector.empty
+    )
+    (newAttacker, newDefender, events)
   }
 
-  private def attack(attacker: Creature, defender: Creature): (Creature, Vector[GameEvent]) = {
-    val damage = resolveDamage(attacker, defender)
-    val damagedDefender = defender.modify(_.hitPoints).using(_ - damage.getOrElse(0))
-    val events = CreatureAttacked(attacker.name, defender.name, damage) +:
-      (if (damagedDefender.hitPoints <= 0) Vector(CreatureDied(defender.name)) else Vector.empty)
-    (damagedDefender, events)
-  }
-
-  private def resolveDamage(attacker: Creature, defender: Creature): Option[Int] = {
-    val roll = (1 to 4).map(_ => random.nextInt(3) - 1).sum
-    val damage = roll + attacker.attack - defender.defense
-    Some(damage).filter(_ > 0)
+  private def resolveAttack(attacker: Creature, defender: Creature): AttackResult = {
+    val attackRoll = (1 to 4).map(_ => random.nextInt(3) - 1).sum
+    val defenseRoll = (1 to 4).map(_ => random.nextInt(3) - 1).sum
+    val damage =
+      (attackRoll + attacker.attack) -
+      (defenseRoll + defender.defense) +
+      (if (attacker.hasAdvantage) 2 else 0)
+    damage match {
+      case 0 => AttackResult(damage = None, advantage = true)
+      case _ if damage > 0 => AttackResult(damage = Some(damage), advantage = false)
+      case _ => AttackResult(damage = None, advantage = false)
+    }
   }
 
   private def direction(keyEvent: KeyEvent): Option[V2[Int]] =
@@ -86,3 +90,8 @@ object Updater {
     }
 
 }
+
+private final case class AttackResult(
+  damage: Option[Int],
+  advantage: Boolean
+)
