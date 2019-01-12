@@ -82,11 +82,15 @@ object Updater {
   }
 
   private def direction(keyEvent: KeyEvent): Option[V2[Int]] =
-    keyEvent.code match {
-      case KeyCode.Left => Some(V2(-1, 0))
-      case KeyCode.Right => Some(V2(1, 0))
-      case KeyCode.Up => Some(V2(0, -1))
-      case KeyCode.Down => Some(V2(0, 1))
+    (keyEvent.shiftDown, keyEvent.code) match {
+      case (false, KeyCode.Left) => Some(V2(-1, 0))
+      case (false, KeyCode.Right) => Some(V2(1, 0))
+      case (false, KeyCode.Up) => Some(V2(0, -1))
+      case (false, KeyCode.Down) => Some(V2(0, 1))
+      case (true, KeyCode.Left) => Some(V2(-1, -1))
+      case (true, KeyCode.Right) => Some(V2(1, 1))
+      case (true, KeyCode.Up) => Some(V2(1, -1))
+      case (true, KeyCode.Down) => Some(V2(-1, 1))
       case _ => None
     }
 
