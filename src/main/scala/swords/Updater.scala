@@ -10,23 +10,27 @@ object Updater {
   private val random = new Random()
 
   def update(keyEvent: KeyEvent, gs: GameState): GameState = {
-    direction(keyEvent) match {
-      case Some(dir) =>
-        val target = gs.player.position + dir
-        val attackedEnemy = gs.enemies.find(_.position == target)
-        val gsAfterPlayerAction = attackedEnemy match {
-          case Some(enemy) =>
-            val (newPlayer, newEnemy, events) = attack(gs.player, enemy)
-            gs
-              .copy(player = newPlayer)
-              .replaceEnemy(enemy, Some(newEnemy).filter(_.hitPoints > 0))
-              .appendEvents(events)
-          case None =>
-            gs.modify(_.player.position).setTo(target)
-        }
-        stepEnemies(gsAfterPlayerAction)
-      case None =>
-        gs
+    if (gs.gameOver) {
+      GameState.initial
+    } else {
+      direction(keyEvent) match {
+        case Some(dir) =>
+          val target = gs.player.position + dir
+          val attackedEnemy = gs.enemies.find(_.position == target)
+          val gsAfterPlayerAction = attackedEnemy match {
+            case Some(enemy) =>
+              val (newPlayer, newEnemy, events) = attack(gs.player, enemy)
+              gs
+                .copy(player = newPlayer)
+                .replaceEnemy(enemy, Some(newEnemy).filter(_.hitPoints > 0))
+                .appendEvents(events)
+            case None =>
+              gs.modify(_.player.position).setTo(target)
+          }
+          stepEnemies(gsAfterPlayerAction)
+        case None =>
+          gs
+      }
     }
   }
 
