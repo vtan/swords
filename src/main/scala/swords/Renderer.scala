@@ -1,27 +1,16 @@
 package swords
 
-import java.awt.{Color, Graphics, Graphics2D}
-import javax.swing.JPanel
+import scalafx.scene.canvas.GraphicsContext
+import scalafx.scene.paint.Color
 
-final class Renderer(
-  screenSize: V2[Int],
-  var gs: GameState
-) extends JPanel {
+object Renderer {
 
-  setFont(getFont.deriveFont(16.0f))
-
-  override def paintComponent(graphics: Graphics): Unit = {
-    super.paintComponent(graphics)
-
-    graphics.setColor(new Color(0, 0, 0))
+  def render(graphics: GraphicsContext, screenSize: V2[Double])(gs: GameState): Unit = {
+    graphics.fill = Color.Black
     graphics.fillRect(0, 0, screenSize.x, screenSize.y)
 
-    render(graphics.asInstanceOf[Graphics2D], gs)
-  }
-
-  private def render(graphics: Graphics2D, gs: GameState): Unit = {
-    renderCreature(graphics, playerColor, gs.player)
-    gs.enemies.foreach(renderCreature(graphics, enemyColor, _))
+    renderCreature(graphics)(playerColor, gs.player)
+    gs.enemies.foreach(renderCreature(graphics)(enemyColor, _))
 
     (Stream.from(0) zip gs.events.takeRight(10).reverse).foreach {
       case (i, event) =>
@@ -35,25 +24,25 @@ final class Renderer(
           case CreatureGainedAdvantage(name) =>
             s"$name gained an advantage"
         }
-        graphics.setColor(Color.white)
-        graphics.drawString(message, 0, screenSize.y - i * 16)
+        graphics.fill = Color.White
+        graphics.fillText(message, 0, screenSize.y - i * 16)
     }
 
     if (gs.gameOver) {
-      graphics.setColor(Color.white)
-      graphics.drawString("You died. Press any key to try again.", 0, 16)
+      graphics.fill = Color.White
+      graphics.fillText("You died. Press any key to try again.", 0, 16)
     }
   }
 
-  private def renderCreature(graphics: Graphics2D, color: Color, creature: Creature): Unit = {
+  private def renderCreature(graphics: GraphicsContext)(color: Color, creature: Creature): Unit = {
     val posPx = creature.position * tileSize
-    graphics.setColor(if (creature.hasAdvantage) color.brighter else color)
+    graphics.fill = if (creature.hasAdvantage) color.brighter else color
     graphics.fillRect(posPx.x, posPx.y, tileSize.x, tileSize.y)
-    graphics.setColor(Color.white)
-    graphics.drawString(s"HP: ${creature.hitPoints}", posPx.x, posPx.y + tileSize.y)
+    graphics.fill = Color.White
+    graphics.fillText(s"HP: ${creature.hitPoints}", posPx.x, posPx.y + tileSize.y)
   }
 
   private val tileSize: V2[Int] = V2(48, 48)
-  private val playerColor = new Color(0, 127, 255)
-  private val enemyColor = new Color(255, 127, 0)
+  private val playerColor = Color(0, 0.5, 1, 1)
+  private val enemyColor = Color(1, 0.5, 0, 1)
 }

@@ -1,9 +1,9 @@
 package swords
 
 import scala.util.Random
-import java.awt.event.KeyEvent
 
 import com.softwaremill.quicklens._
+import scalafx.scene.input.{KeyCode, KeyEvent}
 
 object Updater {
 
@@ -81,11 +81,11 @@ object Updater {
   }
 
   private def direction(keyEvent: KeyEvent): Option[V2[Int]] =
-    keyEvent.getKeyCode match {
-      case KeyEvent.VK_LEFT => Some(V2(-1, 0))
-      case KeyEvent.VK_RIGHT => Some(V2(1, 0))
-      case KeyEvent.VK_UP => Some(V2(0, -1))
-      case KeyEvent.VK_DOWN => Some(V2(0, 1))
+    keyEvent.code match {
+      case KeyCode.Left => Some(V2(-1, 0))
+      case KeyCode.Right => Some(V2(1, 0))
+      case KeyCode.Up => Some(V2(0, -1))
+      case KeyCode.Down => Some(V2(0, 1))
       case _ => None
     }
 

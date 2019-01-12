@@ -2,6 +2,9 @@ name := "swords"
 version := "0.1"
 scalaVersion := "2.12.8"
 
-mainClass := Some("swords.Main")
+libraryDependencies ++= Seq(
+  "com.softwaremill.quicklens" %% "quicklens" % "1.4.11",
+  "org.scalafx" %% "scalafx" % "8.0.181-R13"
+)
 
-libraryDependencies += "com.softwaremill.quicklens" %% "quicklens" % "1.4.11"
+fork := true

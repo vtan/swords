@@ -1,38 +1,41 @@
 package swords
 
-import java.awt.Dimension
-import java.awt.event.{KeyAdapter, KeyEvent}
-import javax.swing.JFrame
+import scalafx.application.JFXApp
+import scalafx.application.JFXApp.PrimaryStage
+import scalafx.scene.{Group, Scene}
+import scalafx.scene.canvas.Canvas
+import scalafx.scene.input.KeyEvent
 
-object Main {
+object Main extends JFXApp with scalafx.Includes {
 
-  def main(args: Array[String]): Unit = {
-    var gs = GameState.initial
-    val screenSize = V2(1280, 720)
-    val renderer = new Renderer(screenSize, gs)
+  var gs = GameState.initial
+  val screenSize = V2(1280.0, 720.0)
 
-    val frame = new JFrame()
-    frame.add(renderer)
-    frame.getContentPane.setPreferredSize(new Dimension(screenSize.x, screenSize.y))
-    frame.setResizable(false)
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+  val canvas = new Canvas(screenSize.x, screenSize.y)
+  val graphics = canvas.graphicsContext2D
 
-    frame.addKeyListener {
-      new KeyAdapter {
-        override def keyPressed(keyEvent: KeyEvent): Unit = {
-          gs = if (gs.gameOver) {
-            GameState.initial
-          } else {
-            Updater.update(keyEvent, gs)
-          }
-          renderer.gs = gs
-          frame.repaint()
-        }
+  private def render(): Unit =
+    Renderer.render(graphics, screenSize)(gs)
+
+  stage = new PrimaryStage {
+    resizable = false
+
+    scene = new Scene(screenSize.x, screenSize.y) {
+      maxWidth = screenSize.x
+      maxHeight = screenSize.y
+      minWidth = screenSize.x
+      minHeight = screenSize.y
+
+      root = new Group {
+        children = canvas
+      }
+      onKeyPressed = (keyEvent: KeyEvent) => {
+        gs = Updater.update(keyEvent, gs)
+        render()
       }
     }
-
-    frame.pack()
-    frame.setVisible(true)
   }
+
+  render()
 
 }
