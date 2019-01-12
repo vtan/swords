@@ -24,7 +24,7 @@ object GameState {
       position = V2(10, 10),
       hitPoints = 12,
       attack = 2,
-      defense = 2,
+      defense = 14,
       hasAdvantage = false
     ),
     enemies = Vector(
@@ -33,7 +33,7 @@ object GameState {
         position = V2(3, 3),
         hitPoints = 7,
         attack = 1,
-        defense = 1,
+        defense = 12,
         hasAdvantage = false
       ),
       Creature(
@@ -41,7 +41,7 @@ object GameState {
         position = V2(12, 2),
         hitPoints = 7,
         attack = 1,
-        defense = 1,
+        defense = 12,
         hasAdvantage = false
       )
     ),

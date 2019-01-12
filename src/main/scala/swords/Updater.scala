@@ -71,12 +71,9 @@ object Updater {
   }
 
   private def resolveAttack(attacker: Creature, defender: Creature): AttackResult = {
-    val attackRoll = (1 to 4).map(_ => random.nextInt(3) - 1).sum
-    val defenseRoll = (1 to 4).map(_ => random.nextInt(3) - 1).sum
-    val damage =
-      (attackRoll + attacker.attack) -
-      (defenseRoll + defender.defense) +
-      (if (attacker.hasAdvantage) 2 else 0)
+    val attackRoll = (1 to 3).map(_ => random.nextInt(6) + 1).sum
+    val attackBonus = attacker.attack + (if (attacker.hasAdvantage) 2 else 0)
+    val damage = attackRoll + attackBonus - defender.defense
     damage match {
       case 0 => AttackResult(damage = None, advantage = true)
       case _ if damage > 0 => AttackResult(damage = Some(damage), advantage = false)
