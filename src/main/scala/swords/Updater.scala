@@ -22,7 +22,7 @@ object Updater {
               val (newPlayer, newEnemy, events) = attack(gs.player, enemy)
               gs
                 .copy(player = newPlayer)
-                .replaceEnemy(enemy, Some(newEnemy).filter(_.hitPoints > 0))
+                .updateEnemy(enemy){ case _ if newEnemy.hitPoints > 0 => newEnemy }
                 .appendEvents(events)
             case None =>
               gs.modify(_.player.position).setTo(target)
@@ -44,16 +44,23 @@ object Updater {
       val (newEnemy, newPlayer, events) = attack(enemy, gs.player)
       gs
         .copy(player = newPlayer)
-        .replaceEnemy(enemy, Some(newEnemy).filter(_.hitPoints > 0))
+        .updateEnemy(enemy){ case _ if newEnemy.hitPoints > 0 => newEnemy }
         .appendEvents(events)
     } else {
       val direction = toPlayer.map(_.signum)
       val target = enemy.position + direction
-      if (gs.enemies.exists(_.position == target)) {
-        gs
-      } else {
+      if (gs.isTileEmpty(target)) {
         val movedEnemy = enemy.modify(_.position).using(_ + direction)
         gs.modify(_.enemies).using(_.map(e => if (e == enemy) movedEnemy else e))
+      } else {
+        val neighborClosestToPlayer = gs
+          .emptyTilesNextTo(enemy.position)
+          .sortBy(_.maxDistance(gs.player.position))
+          .headOption
+        neighborClosestToPlayer match {
+          case Some(pos) => gs.updateEnemy(enemy){ case _ => enemy.copy(position = pos) }
+          case None => gs
+        }
       }
     }
   }

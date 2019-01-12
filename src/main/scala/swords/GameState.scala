@@ -7,11 +7,22 @@ final case class GameState(
 ) {
   lazy val gameOver: Boolean = player.hitPoints <= 0
 
-  def replaceEnemy(enemy: Creature, newEnemy: Option[Creature]): GameState =
-    newEnemy match {
-      case Some(ne) => copy(enemies = enemies.map(e => if (e == enemy) ne else e))
-      case None => copy(enemies = enemies.filterNot(_ == enemy))
-    }
+  def isTileEmpty(pos: V2[Int]): Boolean =
+    player.position != pos && enemies.forall(_.position != pos)
+
+  def emptyTilesNextTo(pos: V2[Int]): Seq[V2[Int]] =
+    for {
+      dx <- Seq(-1, 0, 1)
+      dy <- Seq(-1, 0, 1)
+      if dx != 0 || dy != 0
+      neighbor = pos + V2(dx, dy)
+      if isTileEmpty(neighbor)
+    } yield neighbor
+
+  def updateEnemy(enemy: Creature)(f: PartialFunction[Creature, Creature]): GameState = {
+    val leaveOthers: PartialFunction[Creature, Creature] = { case e if e != enemy => e }
+    copy(enemies = enemies.collect(leaveOthers orElse f))
+  }
 
   def appendEvents(newEvents: Vector[GameEvent]): GameState =
     copy(events = events ++ newEvents)

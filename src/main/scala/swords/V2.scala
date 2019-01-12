@@ -14,6 +14,9 @@ final case class V2[A](x: A, y: A) {
   def max(implicit ord: Ordering[A]): A =
     ord.max(x, y)
 
+  def maxDistance(rhs: V2[A])(implicit num: Numeric[A], ord: Ordering[A]): A =
+    (this - rhs).map(num.abs).max
+
   def map[B](f: A => B): V2[B] =
     V2(f(x), f(y))
 
