@@ -9,13 +9,14 @@ import scalafx.scene.input.KeyEvent
 object Main extends JFXApp with scalafx.Includes {
 
   var gs = GameState.initial
-  val screenSize = V2(1280.0, 720.0)
+  val screenSize = V2(1824.0, 960.0)
+  val resources = new Resources
 
   val canvas = new Canvas(screenSize.x, screenSize.y)
-  val graphics = canvas.graphicsContext2D
+  val renderEnv = RenderEnv(canvas.graphicsContext2D, screenSize, resources)
 
   private def render(): Unit =
-    Renderer.render(graphics, screenSize)(gs)
+    Renderer.render(gs)(renderEnv)
 
   stage = new PrimaryStage {
     resizable = false
@@ -37,5 +38,4 @@ object Main extends JFXApp with scalafx.Includes {
   }
 
   render()
-
 }

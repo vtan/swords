@@ -1,16 +1,18 @@
 package swords
 
-import scalafx.scene.canvas.GraphicsContext
+import scalafx.scene.effect.ColorAdjust
 import scalafx.scene.paint.Color
 
 object Renderer {
 
-  def render(graphics: GraphicsContext, screenSize: V2[Double])(gs: GameState): Unit = {
-    graphics.fill = Color.Black
-    graphics.fillRect(0, 0, screenSize.x, screenSize.y)
+  def render(gs: GameState)(implicit renderEnv: RenderEnv): Unit = {
+    val graphics = renderEnv.graphicsContext
 
-    renderCreature(graphics)(playerColor, gs.player)
-    gs.enemies.foreach(renderCreature(graphics)(enemyColor, _))
+    graphics.fill = Color.Black
+    graphics.fillRect(0, 0, renderEnv.screenSize.x, renderEnv.screenSize.y)
+
+    renderCreature(gs.player)
+    gs.enemies.foreach(renderCreature)
 
     (Stream.from(0) zip gs.events.takeRight(10).reverse).foreach {
       case (i, event) =>
@@ -25,7 +27,7 @@ object Renderer {
             s"$name gained an advantage"
         }
         graphics.fill = Color.White
-        graphics.fillText(message, 0, screenSize.y - i * 16)
+        graphics.fillText(message, 0, renderEnv.screenSize.y - i * 16)
     }
 
     if (gs.gameOver) {
@@ -34,15 +36,29 @@ object Renderer {
     }
   }
 
-  private def renderCreature(graphics: GraphicsContext)(color: Color, creature: Creature): Unit = {
+  private def renderCreature(creature: Creature)(implicit renderEnv: RenderEnv): Unit = {
+    val graphics = renderEnv.graphicsContext
+
     val posPx = creature.position * tileSize
-    graphics.fill = if (creature.hasAdvantage) color.brighter else color
-    graphics.fillRect(posPx.x, posPx.y, tileSize.x, tileSize.y)
+    val (image, color) = if (creature.name == "Player") {
+      ("fighter", Color(0, 0.5, 1, 1))
+    } else {
+      ("goblin", Color(0.5, 1, 0.5, 1))
+    }
+    graphics.setEffect(colorAdjust(color))
+    graphics.drawImage(renderEnv.resources.tile(image), posPx.x, posPx.y, tileSize.x, tileSize.y)
+    graphics.setEffect(null)
+
     graphics.fill = Color.White
-    graphics.fillText(s"HP: ${creature.hitPoints}", posPx.x, posPx.y + tileSize.y)
+    graphics.fillText(s"HP: ${creature.hitPoints}", posPx.x, posPx.y + tileSize.y + 16)
   }
 
+  private def colorAdjust(color: Color) = new ColorAdjust(
+    hue = ((color.hue + 180) % 360 - 180) / 180.0,
+    saturation = color.saturation,
+    brightness = color.brightness - 1,
+    contrast = 0
+  )
+
   private val tileSize: V2[Int] = V2(48, 48)
-  private val playerColor = Color(0, 0.5, 1, 1)
-  private val enemyColor = Color(1, 0.5, 0, 1)
 }
