@@ -2,6 +2,8 @@ package swords.ecs
 
 import scala.reflect.runtime.universe._
 
+import shapeless._
+
 class EntityStore private(
   private val components: Map[TypeTag[_], Map[Entity, Any]]
 ) {
@@ -14,29 +16,8 @@ class EntityStore private(
     )
   }
 
-  def get[T : TypeTag]: Seq[(Entity, T)] =
-    components.getOrElse(typeTag[T], Map.empty)
-      .toSeq
-      .map { case (ref, component) => (ref, component.asInstanceOf[T]) }
-
-  def get[T : TypeTag, U: TypeTag]: Seq[(Entity, T, U)] = {
-    val ts = components.getOrElse(typeTag[T], Map.empty)
-    val us = components.getOrElse(typeTag[U], Map.empty)
-    (ts.keys ++ us.keys)
-      .map { ref =>
-        for {
-          t <- ts.get(ref).map(_.asInstanceOf[T])
-          u <- us.get(ref).map(_.asInstanceOf[U])
-        } yield (ref, t, u)
-      }
-      .collect { case Some(x) => x }
-      .toSeq
-  }
-
-  def get[T : TypeTag](entity: Entity): Option[T] =
-    components.getOrElse(typeTag[T], Map.empty)
-      .get(entity)
-      .map { _.asInstanceOf[T] }
+  def get[L <: HList : Queryable]: Seq[Entity :: L] =
+    implicitly[Queryable[L]].query(components)
 
   def applyChange(change: EntityChange[Any]): EntityStore = {
     val newComponents = change match {
@@ -61,3 +42,21 @@ object EntityStore {
     new EntityStore(Map.empty)
 }
 
+trait Queryable[T <: HList] {
+  def query(components: Map[TypeTag[_], Map[Entity, Any]]): Seq[Entity :: T]
+}
+
+object Queryable {
+  implicit def singletonQueryable[T : TypeTag]: Queryable[T :: HNil] =
+    _.getOrElse(typeTag[T], Map.empty)
+      .toSeq
+      .map { case (ref, component) => ref :: component.asInstanceOf[T] :: HNil }
+
+  implicit def consQueryable[T : TypeTag, L <: HList : Queryable]: Queryable[T :: L] =
+    { components: Map[TypeTag[_], Map[Entity, Any]] =>
+      for {
+        entity :: tail <- implicitly[Queryable[L]].query(components)
+        component <- components.get(typeTag[T]).flatMap(_.get(entity)).toSeq
+      } yield entity :: component.asInstanceOf[T] :: tail
+    }
+}

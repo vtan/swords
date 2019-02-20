@@ -6,6 +6,7 @@ import swords.ecs.{Entity, EntityStore}
 import scala.util.Random
 
 import scalafx.scene.input.{KeyCode, KeyEvent}
+import shapeless.{::, HNil}
 
 object Controller {
 
@@ -37,8 +38,8 @@ object Controller {
   }
 
   private def collectRenderables(es: EntityStore): Seq[Renderable] =
-    es.get[Sprite, Position].map {
-      case (_, sprite, position) => Renderable(position, sprite)
+    es.get[Sprite :: Position :: HNil].map {
+      case _ :: sprite :: position :: HNil => Renderable(position, sprite)
     }
 
   private def direction(keyEvent: KeyEvent): Option[V2[Int]] =
