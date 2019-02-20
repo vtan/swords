@@ -3,6 +3,7 @@ package swords.ecs
 import scala.reflect.runtime.universe._
 
 import shapeless._
+import shapeless.ops.hlist.Tupler
 
 class EntityStore private(
   private val components: Map[TypeTag[_], Map[Entity, Any]]
@@ -16,8 +17,8 @@ class EntityStore private(
     )
   }
 
-  def get[L <: HList : Queryable]: Seq[Entity :: L] =
-    implicitly[Queryable[L]].query(components)
+  def get[L <: HList : Queryable](implicit tupler: Tupler[Entity :: L]): Seq[tupler.Out] =
+    implicitly[Queryable[L]].query(components).map(tupler(_))
 
   def applyChange(change: EntityChange[Any]): EntityStore = {
     val newComponents = change match {

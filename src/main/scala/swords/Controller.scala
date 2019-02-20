@@ -39,7 +39,7 @@ object Controller {
 
   private def collectRenderables(es: EntityStore): Seq[Renderable] =
     es.get[Sprite :: Position :: HNil].map {
-      case _ :: sprite :: position :: HNil => Renderable(position, sprite)
+      case (_, sprite, position) => Renderable(position, sprite)
     }
 
   private def direction(keyEvent: KeyEvent): Option[V2[Int]] =
