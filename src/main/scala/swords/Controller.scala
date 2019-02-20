@@ -1,6 +1,7 @@
 package swords
 
-import swords.ecs.EntityStore
+import swords.components.{Player, Position, Sprite}
+import swords.ecs.{Entity, EntityStore}
 
 import scala.util.Random
 
@@ -11,15 +12,34 @@ object Controller {
   private val random = new Random()
 
   def initialize(implicit renderEnv: RenderEnv): EntityStore = {
-    Renderer.render(Seq.empty)
-    EntityStore()
+    val player = Entity.create()
+    val enemy = Entity.create()
+
+    val es = EntityStore()
+      .add(player, Player)
+      .add(player, Sprite("fighter"))
+      .add(player, Position(V2(5, 5)))
+      .add(enemy, Sprite("goblin"))
+      .add(enemy, Position(V2(8, 5)))
+
+    val renderables = collectRenderables(es)
+    Renderer.render(renderables)
+
+    es
   }
 
-  def update(keyEvent: KeyEvent, entityStore: EntityStore)(implicit renderEnv: RenderEnv): EntityStore = {
-    val renderables = Seq()
-    Renderer.render(renderables)
-    entityStore
+  def update(keyEvent: KeyEvent, es: EntityStore)(implicit renderEnv: RenderEnv): EntityStore = {
+    val systemsToRun = direction(keyEvent).map(systems.movePlayer).toSeq
+
+    val updated = systemsToRun.foldLeft(es)(_.applySystem(_))
+    Renderer.render(collectRenderables(updated))
+    updated
   }
+
+  private def collectRenderables(es: EntityStore): Seq[Renderable] =
+    es.get[Sprite, Position].map {
+      case (_, sprite, position) => Renderable(position, sprite)
+    }
 
   private def direction(keyEvent: KeyEvent): Option[V2[Int]] =
     (keyEvent.shiftDown, keyEvent.code) match {

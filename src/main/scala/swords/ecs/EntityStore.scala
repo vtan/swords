@@ -33,6 +33,11 @@ class EntityStore private(
       .toSeq
   }
 
+  def get[T : TypeTag](entity: Entity): Option[T] =
+    components.getOrElse(typeTag[T], Map.empty)
+      .get(entity)
+      .map { _.asInstanceOf[T] }
+
   def applyChange(change: EntityChange[Any]): EntityStore = {
     val newComponents = change match {
       case Update(tt, entity, newValue) =>
