@@ -1,5 +1,7 @@
 package swords
 
+import swords.ecs.EntityStore
+
 import scala.util.Random
 
 import scalafx.scene.input.{KeyCode, KeyEvent}
@@ -8,9 +10,15 @@ object Controller {
 
   private val random = new Random()
 
-  def update(keyEvent: KeyEvent, entityStore: Unit)(implicit renderEnv: RenderEnv): Unit = {
+  def initialize(implicit renderEnv: RenderEnv): EntityStore = {
+    Renderer.render(Seq.empty)
+    EntityStore()
+  }
+
+  def update(keyEvent: KeyEvent, entityStore: EntityStore)(implicit renderEnv: RenderEnv): EntityStore = {
     val renderables = Seq()
     Renderer.render(renderables)
+    entityStore
   }
 
   private def direction(keyEvent: KeyEvent): Option[V2[Int]] =

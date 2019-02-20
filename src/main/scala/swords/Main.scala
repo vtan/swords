@@ -8,12 +8,13 @@ import scalafx.scene.input.KeyEvent
 
 object Main extends JFXApp with scalafx.Includes {
 
-  var entityStore = ()
   val screenSize = V2(1824.0, 960.0)
   val resources = new Resources
 
   val canvas = new Canvas(screenSize.x, screenSize.y)
   val renderEnv = RenderEnv(canvas.graphicsContext2D, screenSize, resources)
+
+  var entityStore = Controller.initialize(renderEnv)
 
   stage = new PrimaryStage {
     resizable = false
