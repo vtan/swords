@@ -8,15 +8,12 @@ import scalafx.scene.input.KeyEvent
 
 object Main extends JFXApp with scalafx.Includes {
 
-  var gs = GameState.initial
+  var entityStore = ()
   val screenSize = V2(1824.0, 960.0)
   val resources = new Resources
 
   val canvas = new Canvas(screenSize.x, screenSize.y)
   val renderEnv = RenderEnv(canvas.graphicsContext2D, screenSize, resources)
-
-  private def render(): Unit =
-    Renderer.render(gs)(renderEnv)
 
   stage = new PrimaryStage {
     resizable = false
@@ -31,11 +28,8 @@ object Main extends JFXApp with scalafx.Includes {
         children = canvas
       }
       onKeyPressed = (keyEvent: KeyEvent) => {
-        gs = Updater.update(keyEvent, gs)
-        render()
+        entityStore = Controller.update(keyEvent, entityStore)(renderEnv)
       }
     }
   }
-
-  render()
 }
